@@ -3,71 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <title>Dashboard</title>
-    <style>
-        body { font-family: sans-serif; }
-        .device { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
-        .qr-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; }
+    <style> /* Simple styling */
+        body { font-family: Arial, sans-serif; }
+        .device-card { border: 1px solid #ccc; border-radius: 5px; padding: 15px; margin-bottom: 10px; }
+        .status-connected { color: green; }
+        .status-disconnected { color: red; }
+        .qr-modal { display: none; /* ... pehle jaisa ... */ }
     </style>
 </head>
 <body>
-    <h1>Welcome to your Dashboard</h1>
+    <h1>Welcome, <%= user.username %>!</h1>
+    <a href="/auth/logout">Logout</a>
+    <hr>
 
+    <h2>My WhatsApp Devices</h2>
+    <input type="text" id="newDeviceName" placeholder="Enter device name">
     <button id="addDeviceBtn">Add New Device</button>
     
-    <h2>My Devices</h2>
-    <div id="deviceList">
-        <!-- Devices yahan dynamically load honge -->
-    </div>
+    <div id="deviceList"></div>
 
-    <!-- QR Code Modal -->
     <div id="qrModal" class="qr-modal">
-        <div style="background: white; padding: 20px;">
-            <h3>Scan this QR Code</h3>
-            <img id="qrImage" src="" alt="QR Code">
+        <div style="background: white; padding: 20px; text-align: center;">
+            <h3>Scan QR Code to Link Device</h3>
+            <p id="qrClientId"></p>
+            <div id="qrImageContainer"></div>
+            <button onclick="document.getElementById('qrModal').style.display = 'none'">Close</button>
         </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io();
-
-        document.getElementById('addDeviceBtn').addEventListener('click', async () => {
-            // NOTE: production mein userId ko token se get karna hoga
-            const userId = prompt("Enter your User ID for demo:");
-            if (!userId) return;
-
-            const response = await fetch('/api/devices', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: userId, deviceName: 'New WhatsApp' })
-            });
-            const data = await response.json();
-            alert(data.message);
-            // Naya device add hone ke baad list refresh karein
-            // For now, let's just trigger the connection
-            connectDevice(data.device.clientId);
-        });
-
-        function connectDevice(clientId) {
-            document.getElementById('qrModal').style.display = 'flex';
-            socket.emit('start_session', { clientId });
-        }
-        
-        // Socket.io listeners
-        socket.on('qr_code', (data) => {
-            document.getElementById('qrImage').src = data.qrCode;
-        });
-
-        socket.on('status_update', (data) => {
-            alert(data.message);
-            if(data.status === 'Connected') {
-                document.getElementById('qrModal').style.display = 'none';
-            }
-            // Yahan device list ko update karein
-        });
-
-        // Page load par devices fetch karein (implementation baqi hai)
-
-    </script>
+    <script src="/js/dashboard.js"></script>
 </body>
 </html>
